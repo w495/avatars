@@ -5,7 +5,7 @@ install:
 	go get -v ./...
 
 run:
-	go run main.go
+	go run *.go
 
 build:
-	go run main.go
+	go build -o avatars
