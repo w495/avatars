@@ -21,10 +21,6 @@ func SetFile(c *web.C, h http.Handler) http.Handler {
             json.NewEncoder(w).Encode(map[string]string{"msg": err.Error()})
             return
         }
-
-        if c.Env == nil {
-            c.Env = make(map[string]interface{})
-        }
         c.Env["file"] = file
         h.ServeHTTP(w, r)
     })
