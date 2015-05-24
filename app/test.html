@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+</head>
+<body>
+    <section>
+        <h1>Первоначальная загрузка картинки</h1>
+        <form action="api/v1/file" enctype="multipart/form-data" method="post">
+            <p>
+                <label>Файл с картинкой</label>
+                <input type="file" name="file">
+            </p>
+
+            <!--
+                Безусловно маску можно передавать и через, одно текстовое поле.
+                Но это не естественно.
+                Не хорошо смешивать протоколы в одном запросе.
+                <p><input type="text" name="mask"></p>
+            -->
+
+            <p>
+                <label>mask.min.x</label>
+                <input type="number" name="mask-min-x">
+            </p>
+            <p>
+                <label>mask.min.y</label>
+                <input type="number" name="mask-min-y">
+            </p>
+            <p>
+                <label>mask.max.x</label>
+                <input type="number" name="mask-max-x">
+            </p>
+            <p>
+                <label>mask.max.y</label>
+                <input type="number" name="mask-max-y">
+            </p>
+            <p><input type="submit"></p>
+        </form>
+    </section>
+</body>
+</html>
