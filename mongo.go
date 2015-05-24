@@ -11,26 +11,35 @@ var (
     GridFsPrefix = config.String("mongo-gridfs-prefix","avatars")
 )
 
-func GetImageById (id bson.ObjectId) (*mgo.GridFile,error) {
+
+
+func GetImageById (id bson.ObjectId) (*DbFile,error) {
     var (
         file *mgo.GridFile
+        dbfile *DbFile
         err error
     )
     sess,err := connect()
     if err != nil {
         // TODO: Почему на panic(err.String()) ?
-        return file,err
+        return dbfile,err
     }
     defer sess.Close()
     file,err = sess.DB("").GridFS(*GridFsPrefix).OpenId(id)
     if err != nil {
-        return file,err
+        return dbfile,err
     }
-    return file,nil
+    dbfile = new(DbFile)
+    dbfile.GridFile = *file
+    dbfile.BuildBody()
+    dbfile.Close()
+    return dbfile,nil
 }
 
 
-func SaveFile (name string, data []byte) (interface {}, error) {
+
+
+func PutImageToDb (name string, contenttype string, data []byte) (interface {}, error) {
     var (
         file *mgo.GridFile
         err error
@@ -45,9 +54,12 @@ func SaveFile (name string, data []byte) (interface {}, error) {
     if err != nil {
         return file,err
     }
+    file.SetContentType(contenttype)
     _, err = file.Write(data)
 
-    return file.Id(),nil
+    err = file.Close()
+
+    return file.Id(), nil
 }
 
 

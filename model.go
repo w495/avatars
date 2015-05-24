@@ -4,6 +4,9 @@ package main
 //  все необходимые методы для работы с ним.
 
 import (
+    //"gopkg.in/mgo.v2/bson"
+    "gopkg.in/mgo.v2"
+    "log"
     "strconv"
     "image"
     "strings"
@@ -77,20 +80,40 @@ func (ff *FormFile) setMinX () (string)  {
 
 
 type FormFile struct {
+    id  interface {}
+    contentType string
     name string
     data []byte
 }
 
-func (ff *FormFile) Name () (string)  {
+func (ff *FormFile) Name () string  {
     return ff.name
 }
 
-func (ff *FormFile) Data () ([]byte)  {
+func (ff *FormFile) Data () []byte  {
     return ff.data
+}
+
+func (ff *FormFile) ContentType () string  {
+    return ff.contentType
+}
+
+func (ff *FormFile) Id () interface {}  {
+    return ff.id
+}
+
+func (ff *FormFile) SetId (id interface {}) (*FormFile, error)  {
+    ff.id = id
+    return ff, nil
 }
 
 func (ff *FormFile) SetName (name string) (*FormFile, error)  {
     ff.name = name
+    return ff, nil
+}
+
+func (ff *FormFile) SetContentType (contentType string) (*FormFile, error)  {
+    ff.contentType = string(contentType)
     return ff, nil
 }
 
@@ -100,9 +123,44 @@ func (ff *FormFile) UpdateData (slurp []byte) (*FormFile, error)  {
 }
 
 
+func (ff *FormFile) Save() (interface {}, error)  {
+    var (
+        err error
+    )
+    ff.id, err = PutImageToDb(ff.name, ff.contentType, ff.data)
+
+    log.Print("ff.id = ", ff.id)
+    return ff.id, err
+}
 
 
-type FormFileParts struct {
+
+type DbFile struct {
+    mgo.GridFile
+    body []byte
+}
+
+func (df *DbFile) Body () []byte   {
+    return df.body
+}
+
+func (df *DbFile) SetBody (body []byte) (*DbFile, error)  {
+    df.body = body
+    return df, nil
+}
+
+func (df *DbFile) BuildBody () (*DbFile, error)  {
+    df.body = make([]byte, int(df.Size()))
+    _, err := df.Read(df.body)
+    if err != nil {
+        return df,err
+    }
+    return df, nil
+}
+
+
+
+type ImageFile struct {
     FormFile
     Mask
 }

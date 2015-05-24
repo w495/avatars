@@ -6,7 +6,7 @@ import (
     "encoding/json"
     "log"
     "io/ioutil"
-    "gopkg.in/mgo.v2"
+    //"gopkg.in/mgo.v2"
     "io"
     //"fmt"
     "mime"
@@ -31,7 +31,7 @@ func UploadFile (c web.C, w http.ResponseWriter, request *http.Request) {
         log.Fatal(err)
     }
 
-    formFileParts := new(FormFileParts)
+    formFileParts := new(ImageFile)
 
     if strings.HasPrefix(mediaType, "multipart/") {
         reader := multipart.NewReader(request.Body, paramList["boundary"])
@@ -39,6 +39,7 @@ func UploadFile (c web.C, w http.ResponseWriter, request *http.Request) {
             part, err := reader.NextPart()
             if err == io.EOF {
                 // При нормальном исходе функция завершится тут.
+                formFileParts.Save()
                 return
             }
             if err != nil {
@@ -47,12 +48,11 @@ func UploadFile (c web.C, w http.ResponseWriter, request *http.Request) {
             formFileParts = ParseFormFile(formFileParts, part)
         }
     }
-
     return
 }
 
 
-func ParseFormFile (formFileParts *FormFileParts, part *multipart.Part) *FormFileParts {
+func ParseFormFile (formFileParts *ImageFile, part *multipart.Part) *ImageFile {
 
     slurp, err := ioutil.ReadAll(part)
     if err != nil {
@@ -63,6 +63,7 @@ func ParseFormFile (formFileParts *FormFileParts, part *multipart.Part) *FormFil
         case FILE_FORM_NAME: {
             formFileParts.UpdateData(slurp)
             formFileParts.SetName(part.FileName())
+            formFileParts.SetContentType(part.Header.Get("Content-Type"))
         }
         case MASK_MIN_X_FORM_NAME: {
             // TODO: завернуть эту красоту в цикл,
@@ -79,7 +80,6 @@ func ParseFormFile (formFileParts *FormFileParts, part *multipart.Part) *FormFil
             formFileParts.SetFromBytes(`Max/Y`, slurp)
         }
     }
-
     return formFileParts
 }
 
@@ -87,12 +87,23 @@ func ChangeMask (c web.C, w http.ResponseWriter, r *http.Request) {
     return
 }
 
-func GetOriginalFile (c web.C,w http.ResponseWriter,r *http.Request) {
+func GetOriginalFile (c web.C, w http.ResponseWriter, r *http.Request) {
     //получаем файл из env
-    file,_ := c.Env["file"].(*mgo.GridFile)
+    file,_ := c.Env["file"].(*DbFile)
     log.Print("file name: ",file.Name())
-    w.WriteHeader(http.StatusNotFound)
-    json.NewEncoder(w).Encode(map[string]string{"msg":`not found avatar`})
+
+    log.Print("file name: ",file.ContentType())
+    w.WriteHeader(http.StatusOK)
+    w.Header().Set("Content-Type", file.ContentType())
+
+    //b := bytes.NewBuffer(body)
+
+    //b := bytes.NewBuffer(body)
+
+    w.Write(file.Body())
+
+    //json.NewEncoder(w).Encode(map[string]string{"msg":`not found avatar 222`})
+
     return
 }
 
