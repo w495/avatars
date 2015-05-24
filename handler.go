@@ -8,11 +8,11 @@ import (
 )
 
 
-func UploadFile (c web.C,w http.ResponseWriter,r *http.Request) {
+func UploadFile (c web.C, w http.ResponseWriter, r *http.Request) {
     return
 }
 
-func ChangeMask (c web.C,w http.ResponseWriter,r *http.Request) {
+func ChangeMask (c web.C, w http.ResponseWriter, r *http.Request) {
     return
 }
 
