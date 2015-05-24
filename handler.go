@@ -40,6 +40,13 @@ func UploadFile (c web.C, w http.ResponseWriter, request *http.Request) {
             if err == io.EOF {
                 // При нормальном исходе функция завершится тут.
                 formFileParts.Save()
+                w.WriteHeader(http.StatusOK)
+                json.NewEncoder(w).Encode(map[string]string{
+                    "id"    : formFileParts.IdStr(),
+                    "type"  : formFileParts.ContentType(),
+                    "name"  : formFileParts.Name(),
+                })
+
                 return
             }
             if err != nil {
@@ -53,7 +60,9 @@ func UploadFile (c web.C, w http.ResponseWriter, request *http.Request) {
 
 
 func ParseFormFile (formFileParts *ImageFile, part *multipart.Part) *ImageFile {
-
+    //
+    // TODO нужен котроль типа и размера.
+    //
     slurp, err := ioutil.ReadAll(part)
     if err != nil {
         log.Fatal(err)
@@ -91,19 +100,10 @@ func GetOriginalFile (c web.C, w http.ResponseWriter, r *http.Request) {
     //получаем файл из env
     file,_ := c.Env["file"].(*DbFile)
     log.Print("file name: ",file.Name())
-
     log.Print("file name: ",file.ContentType())
     w.WriteHeader(http.StatusOK)
     w.Header().Set("Content-Type", file.ContentType())
-
-    //b := bytes.NewBuffer(body)
-
-    //b := bytes.NewBuffer(body)
-
     w.Write(file.Body())
-
-    //json.NewEncoder(w).Encode(map[string]string{"msg":`not found avatar 222`})
-
     return
 }
 

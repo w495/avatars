@@ -4,6 +4,7 @@ import (
     "gopkg.in/mgo.v2/bson"
     "github.com/drone/config"
     "gopkg.in/mgo.v2"
+    //"log"
 )
 
 var (

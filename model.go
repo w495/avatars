@@ -3,8 +3,12 @@ package main
 // TODO: произвольный тип файла у которого будут
 //  все необходимые методы для работы с ним.
 
+// Кажется, структур становится достаточно много.
+// Хочется разнести все по отдельным файлам.
+// Но я крайне не уверен, что это будет хорошо в контектсе Golang
+
 import (
-    //"gopkg.in/mgo.v2/bson"
+    "gopkg.in/mgo.v2/bson"
     "gopkg.in/mgo.v2"
     "log"
     "strconv"
@@ -31,8 +35,6 @@ func (mask *Mask) SetFromStr(field_path string, buf string) (*Mask, error) {
     return mask.Set(field_path, value)
 }
 
-
-
 // Возвращает image.Rectangle.{Min|Max}.{X|Y}
 // по сигнатурам, записанным в виде пути {Min|Max}/{X|Y}
 func (mask *Mask) Get(field_path string) (int, error) {
@@ -48,7 +50,10 @@ func (mask *Mask) Set(field_path string, value int) (*Mask, error) {
 
 // Возвращает и устанавливает image.Rectangle.{Min|Max}.{X|Y}
 // по сигнатурам, записанным в виде пути {Min|Max}/{X|Y}
-func (mask *Mask) accessByPath(field_path string, value_opt ... int) (int, error) {
+func (mask *Mask) accessByPath(
+    field_path string,
+    value_opt ... int
+) (int, error) {
     str_list := strings.Split(field_path, "/")
     if len(str_list) < 2 {
         err := errors.New("use {Min|Max}/{X|Y}")
@@ -59,8 +64,13 @@ func (mask *Mask) accessByPath(field_path string, value_opt ... int) (int, error
     return  mask.accessByNames(point_field, xy_field, value_opt...), nil
 }
 
-// Возвращает и устанавливает  методы image.Rectangle.{Min|Max}.{X|Y} по сигнатурам
-func (m *Mask) accessByNames(point_field string, xy_field string, value_opt ... int) int {
+// Возвращает и устанавливает методы
+// image.Rectangle.{Min|Max}.{X|Y} по сигнатурам
+func (m *Mask) accessByNames(
+    point_field string,
+    xy_field string,
+    value_opt ... int
+) int {
     mask := reflect.ValueOf(m)
     point_value := reflect.Indirect(mask).FieldByName(point_field)
     xy_value := reflect.Indirect(point_value).FieldByName(xy_field)
@@ -70,14 +80,6 @@ func (m *Mask) accessByNames(point_field string, xy_field string, value_opt ... 
     }
     return int(xy_value.Int())
 }
-
-
-
-/*
-func (ff *FormFile) setMinX () (string)  {
-    return ff.name
-}*/
-
 
 type FormFile struct {
     id  interface {}
@@ -100,6 +102,11 @@ func (ff *FormFile) ContentType () string  {
 
 func (ff *FormFile) Id () interface {}  {
     return ff.id
+}
+
+func (ff *FormFile) IdStr () string  {
+    oid, _ := ff.id.(bson.ObjectId)
+    return oid.Hex()
 }
 
 func (ff *FormFile) SetId (id interface {}) (*FormFile, error)  {
@@ -133,8 +140,6 @@ func (ff *FormFile) Save() (interface {}, error)  {
     return ff.id, err
 }
 
-
-
 type DbFile struct {
     mgo.GridFile
     body []byte
@@ -157,8 +162,6 @@ func (df *DbFile) BuildBody () (*DbFile, error)  {
     }
     return df, nil
 }
-
-
 
 type ImageFile struct {
     FormFile
