@@ -18,6 +18,7 @@ func GetImageById (id bson.ObjectId) (*mgo.GridFile,error) {
     )
     sess,err := connect()
     if err != nil {
+        // TODO: Почему на panic(err.String()) ?
         return file,err
     }
     defer sess.Close()
@@ -27,6 +28,28 @@ func GetImageById (id bson.ObjectId) (*mgo.GridFile,error) {
     }
     return file,nil
 }
+
+
+func SaveFile (name string, data []byte) (interface {}, error) {
+    var (
+        file *mgo.GridFile
+        err error
+    )
+    sess,err := connect()
+    if err != nil {
+        // TODO: Почему на panic(err.String()) ?
+        return file,err
+    }
+    defer sess.Close()
+    file,err = sess.DB("").GridFS(*GridFsPrefix).Create(name)
+    if err != nil {
+        return file,err
+    }
+    _, err = file.Write(data)
+
+    return file.Id(),nil
+}
+
 
 // коннект к монге
 func connect() (*mgo.Session,error) {

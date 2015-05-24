@@ -8,9 +8,18 @@ import (
     "io/ioutil"
     "gopkg.in/mgo.v2"
     "io"
-    "fmt"
+    //"fmt"
     "mime"
     "mime/multipart"
+)
+
+
+const (
+    FILE_FORM_NAME = `file`
+    MASK_MIN_X_FORM_NAME = `mask-min-x`
+    MASK_MIN_Y_FORM_NAME = `mask-min-y`
+    MASK_MAX_X_FORM_NAME = `mask-max-x`
+    MASK_MAX_Y_FORM_NAME = `mask-max-y`
 )
 
 
@@ -21,30 +30,57 @@ func UploadFile (c web.C, w http.ResponseWriter, request *http.Request) {
     if err != nil {
         log.Fatal(err)
     }
+
+    formFileParts := new(FormFileParts)
+
     if strings.HasPrefix(mediaType, "multipart/") {
         reader := multipart.NewReader(request.Body, paramList["boundary"])
         for {
             part, err := reader.NextPart()
             if err == io.EOF {
+                // При нормальном исходе функция завершится тут.
                 return
             }
             if err != nil {
                 log.Fatal(err)
             }
-            slurp, err := ioutil.ReadAll(part)
-            if err != nil {
-                log.Fatal(err)
-            }
-            fmt.Printf("Part %q: %q\n", part.FormName(), slurp)
+            formFileParts = ParseFormFile(formFileParts, part)
         }
     }
 
-
-//     body, _ := ioutil.ReadAll(r.Body)
-//     log.Print("file name: ",body    )
-
-
     return
+}
+
+
+func ParseFormFile (formFileParts *FormFileParts, part *multipart.Part) *FormFileParts {
+
+    slurp, err := ioutil.ReadAll(part)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    switch part.FormName() {
+        case FILE_FORM_NAME: {
+            formFileParts.UpdateData(slurp)
+            formFileParts.SetName(part.FileName())
+        }
+        case MASK_MIN_X_FORM_NAME: {
+            // TODO: завернуть эту красоту в цикл,
+            // если захочется.
+            formFileParts.SetFromBytes(`Min/X`, slurp)
+        }
+        case MASK_MIN_Y_FORM_NAME: {
+            formFileParts.SetFromBytes(`Min/Y`, slurp)
+        }
+        case MASK_MAX_X_FORM_NAME: {
+            formFileParts.SetFromBytes(`Max/X`, slurp)
+        }
+        case MASK_MAX_Y_FORM_NAME: {
+            formFileParts.SetFromBytes(`Max/Y`, slurp)
+        }
+    }
+
+    return formFileParts
 }
 
 func ChangeMask (c web.C, w http.ResponseWriter, r *http.Request) {
