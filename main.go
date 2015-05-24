@@ -27,6 +27,8 @@ func main () {
     mux.Post(BaseApiUrl+"/file",                    UploadFile)
     mux.Put(BaseApiUrl+"/file",                     ChangeMask)
     http.Handle(BaseApiUrl+"/",                     mux)
+
     http.Handle("/", http.FileServer(http.Dir("app")))
+    
     panic(http.ListenAndServe(*Listen, nil))
 }
